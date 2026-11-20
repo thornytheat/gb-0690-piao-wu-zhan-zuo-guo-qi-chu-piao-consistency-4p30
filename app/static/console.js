@@ -21,3 +21,33 @@ async function appendRunEvents(){
  finally{setTimeout(appendRunEvents,5000);}
 }
 appendRunEvents();
+
+const invForm=document.querySelector('#inventory');
+invForm?.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const b=invForm.querySelector('button.primary');
+ b.disabled=true;b.textContent='STOCKTAKING';
+ try{
+  let options;
+  const file=invForm.elements.file.files[0];
+  if(file){
+   const body=new FormData();body.append('file',file);
+   options={method:'POST',body};
+  }else{
+   options={method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({text:invForm.elements.text.value})};
+  }
+  const res=await fetch('/api/m8',options);
+  const out=await res.json();
+  if(!res.ok)throw Error(out.message);
+  const params=new URLSearchParams(location.search);
+  params.set('inv',out.manifest.run_id);
+  location.assign('/m/8?'+params.toString());
+ }catch(err){feedback.textContent=err.message;}
+ finally{b.disabled=false;b.textContent='TAKE STOCK / 盘存';}
+});
+document.querySelector('#inv-sample')?.addEventListener('click',()=>{
+ const area=document.querySelector('#inv-text');
+ area.focus();area.scrollIntoView({behavior:'smooth'});
+ feedback.textContent='示例已载入文本框，可直接盘存或编辑后提交。';
+});

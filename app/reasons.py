@@ -6,7 +6,10 @@ REASONS = {
   "STATE":"事件状态不符", "GAP":"采样缺口超限", "UNMAPPED":"未登记的业务编码",
   "EXPIRED":"已过有效期", "ORPHAN":"缺少关联记录", "OVERLAP":"有效区间重叠",
   "LIMIT":"业务阈值超限", "NEGATIVE":"出现负数", "CURVE":"曲线不满足单调条件",
-  "REVIEW":"存在待复核差异", "INCOMPLETE":"关键记录不完整"
+  "REVIEW":"存在待复核差异", "INCOMPLETE":"关键记录不完整",
+  "INV_KIND":"盘存记录类型不支持", "INV_SEGMENT":"号段未登记或重复登记",
+  "INV_NUMBER":"票号不在号段内", "INV_REVERSE":"已确认票号不能回退",
+  "INV_EXHAUSTED":"号段可发票纸不足", "INV_TAKEN":"票号已被其他号段占用"
 }
 def rejected(row, code, detail=""):
     return {"line":row.get("_line", ""), "key":row.get("id", row.get("event_id", "")),

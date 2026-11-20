@@ -9,5 +9,5 @@ docker compose exec -T app pytest -q
 docker compose down --remove-orphans
 ```
 
-健康检查GET /health。失败输入返回原因码，结构性错误422，过大文件413，陈旧复核409。
-文件内容最大4MB。批次先计算再原子保存，失败不留半条记录。证据CSV按原始行号定位。
+健康检查GET /health。失败输入返回原因码，结构性错误422，过大文件413，陈旧复核409，盘存状态守卫回退冲突409（`INV_REVERSE`）。
+文件内容最大4MB。批次先计算再原子保存，失败不留半条记录。证据CSV按原始行号定位；票号盘存证据为GET /api/m8/evidence.csv，盘存历史为GET /api/m8/history。

@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block content %}<div class="console-grid">
+<section class="panel wide">
+  <div class="panel__head"><h2>号段盘存 · 已售 / 待核实 / 可继续发放</h2><span>{{data.manifest.run_id}}</span></div>
+  <div class="viewport"><table class="ledger"><thead><tr>
+    {% for key in ['segment','channel','seg_start','seg_end','total','sold','pending','allocated','available','ranges','state'] %}<th>{{columns.get(key,key)}}</th>{% endfor %}
+  </tr></thead><tbody>
+  {% for x in data.segments %}<tr class="{% if x.state=='已发完' %}sold{% endif %}">
+    {% for key in ['segment','channel','seg_start','seg_end','total','sold','pending','allocated','available','ranges','state'] %}<td title="{{x.get(key,'')}}" class="{% if key in ['sold','pending','allocated','available','total'] %}num{% endif %}">{{x.get(key,'—')}}</td>{% endfor %}
+  </tr>{% else %}<tr><td colspan="11">还没有号段，先在下方提交盘存 CSV。</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel">
+  <div class="panel__head"><h2>票款对账（补回执随占用同事务更新）</h2></div>
+  <div class="viewport"><table class="ledger"><thead><tr>
+    {% for key in ['channel','payments','paid','paper_tickets','paper_sold','e_tickets','e_ticketed','pending_amount','delta','state'] %}<th>{{columns.get(key,key)}}</th>{% endfor %}
+  </tr></thead><tbody>
+  {% for x in data.channel_inv %}<tr>
+    {% for key in ['channel','payments','paid','paper_tickets','paper_sold','e_tickets','e_ticketed','pending_amount','delta','state'] %}<td title="{{x.get(key,'')}}" class="{% if key in ['paid','paper_sold','e_ticketed','pending_amount','delta'] %}num{% endif %}">{% if key in ['paid','paper_sold','e_ticketed','pending_amount','delta'] %}{{'%.2f'|format(x.get(key,0)|float)}}{% else %}{{x.get(key,'—')}}{% endif %}</td>{% endfor %}
+  </tr>{% else %}<tr><td colspan="10">暂无对账数据。</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel">
+  <div class="panel__head"><h2>提交盘存</h2><button id="inv-sample" class="button" type="button">载入示例</button></div>
+  <form id="inventory">
+    <label>盘存 CSV（号段 / 打印 / 申领）<textarea name="text" id="inv-text" spellcheck="false">{{sample}}</textarea></label>
+    <label>文件<input name="file" type="file" accept=".csv"></label>
+    <button class="button primary">TAKE STOCK / 盘存</button>
+  </form>
+  <div class="watermark"><small>RULES</small><code>{{data.manifest.rules}}</code></div>
+  <div class="panel__head"><h2>盘存批次</h2></div>
+  {% for h in inv_history %}<a class="history" href="/m/8?inv={{h.id}}&run={{result.manifest.run_id}}"><code>{{h.id[:12]}}</code><span>{{h.created[:19]}} UTC</span></a>{% else %}<div class="watermark"><small>暂无历史批次</small></div>{% endfor %}
+</section>
+<section class="panel wide">
+  <div class="panel__head"><h2>票号台账（状态单调，已确认不可回退）</h2><span>{{data.ledger|length}} NUMBERS</span></div>
+  <div class="viewport"><table class="ledger"><thead><tr>
+    {% for key in ['ticket','segment','channel','state','source','amount','updated_run'] %}<th>{{columns.get(key,key)}}</th>{% endfor %}
+  </tr></thead><tbody>
+  {% for x in data.ledger %}<tr class="inv-{{x.state}}">
+    {% for key in ['ticket','segment','channel','state','source','amount','updated_run'] %}<td title="{{x.get(key,'')}}" class="{% if key=='amount' %}num{% endif %}">{{x.get(key,'—')}}</td>{% endfor %}
+  </tr>{% else %}<tr><td colspan="7">暂无票号。</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+<section class="panel wide">
+  <div class="panel__head"><h2>隔离与回退证据</h2><span>{{data.quarantine|length}} ROWS</span></div>
+  <div class="viewport"><table class="ledger"><thead><tr>
+    {% for key in ['line','key','code','reason','detail'] %}<th>{{columns.get(key,key)}}</th>{% endfor %}
+  </tr></thead><tbody>
+  {% for q in data.quarantine %}<tr>
+    {% for key in ['line','key','code','reason','detail'] %}<td title="{{q.get(key,'')}}">{{q.get(key,'—')}}</td>{% endfor %}
+  </tr>{% else %}<tr><td colspan="5">没有隔离记录。</td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="watermark"><a class="button" href="/api/m8/evidence.csv{% if data.manifest.run_id %}?run={{data.manifest.run_id}}{% endif %}">EXPORT / 盘存证据 CSV</a></div>
+</section>
+</div>{% endblock %}

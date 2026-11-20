@@ -15,6 +15,7 @@
 | M5 出票核验 | 检查支付及票号一致 | `/api/m5` | `app/modules/m5_tickets/rules.py` `app/modules/m5_tickets/service.py` | `tests/test_m5_tickets.py` |
 | M6 渠道对账 | 核对渠道金额与悬单 | `/api/m6` | `app/modules/m6_reconcile/rules.py` `app/modules/m6_reconcile/service.py` | `tests/test_m6_reconcile.py` |
 | M7 补传复核 | 补传回放和版本复核 | `/api/m7` | `app/modules/m7_replay/rules.py` `app/modules/m7_replay/service.py` | `tests/test_m7_replay.py` |
+| M8 票号盘存 | 号段盘存、缺报冻结、补回执对账 | `/api/m8` | `app/modules/m8_inventory/rules.py` `app/modules/m8_inventory/service.py` `app/modules/m8_inventory/store.py` | `tests/test_m8_inventory.py` `tests/test_m8_service.py` |
 
 ## 陷阱登记
 
@@ -28,6 +29,10 @@
 | TRAP-14 | 同版冲突 | 覆盖或重复售卖 | 事件时间回放并保留隔离证据 | `app/modules/m2_seats/rules.py` | `tests/test_m2_seats.py::test_real_conflict` |
 | TRAP-23 | 过期端点 | 覆盖或重复售卖 | 事件时间回放并保留隔离证据 | `app/modules/m3_leases/rules.py` | `tests/test_m3_leases.py::test_expiration_endpoint_reusable` |
 | TRAP-26 | 陈旧复核 | 覆盖或重复售卖 | 事件时间回放并保留隔离证据 | `app/store.py` | `tests/test_m7_replay.py::test_stale_review` |
+| TRAP-31 | 缺报票号当未用重发 | 临售重发撞上已印出的票号 | 缺报即冻结待核实，只发放 available 连号 | `app/modules/m8_inventory/rules.py` | `tests/test_m8_inventory.py::test_missing_receipt_freezes_pending_not_reusable` |
+| TRAP-32 | 盘存重跑重复占用 | 同一申领/回执二次扣减票纸 | run_id 内容寻址 + ref 去重 + 批次存在即短路 | `app/modules/m8_inventory/service.py` | `tests/test_m8_service.py::test_same_stocktake_is_idempotent` |
+| TRAP-33 | 已确认票号回退 | 已售票号重新变成可发放 | 状态阶梯单调，规则层与 SQL 触发器双守卫 | `app/modules/m8_inventory/store.py` | `tests/test_m8_service.py::test_confirmed_ticket_never_back_to_available` |
+| TRAP-34 | 补回执对账不同步 | 票款悬单与实际纸票脱节 | 占用与票款对账同一事务更新，待核实金额单列 | `app/modules/m8_inventory/rules.py` | `tests/test_m8_service.py::test_late_receipt_updates_occupancy_and_reconcile_together` |
 
 ## 对账规则
 
